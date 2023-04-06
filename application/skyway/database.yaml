@@ -2,20 +2,20 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: hello-world
+  name: skyway-database
   namespace: argocd
 spec:
   destination:
-    namespace: hello-world
+    namespace: skyway
     server: https://kubernetes.default.svc
   project: default
   source:
     path: kustomize/overlays/docker-desktop
-    repoURL: https://github.com/jayamorin/hello-world.git
+    repoURL: https://github.com/jayamorin/skyway-database.git
     targetRevision: HEAD
   syncPolicy:
     automated:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-      - ApplyOutOfSyncOnly=true`
+      - ApplyOutOfSyncOnly=true
