@@ -4,8 +4,10 @@ kind: Kustomization
 #commonLabels:
 #  app.kubernetes.io/part-of: management
 #  app.kubernetes.io/managed-by: kustomize
-namespace: argocd
 resources:
-  - namespace.yaml
-  - https://raw.githubusercontent.com/argoproj/argo-cd/v2.6.8/manifests/ha/install.yaml
-
+- ../../base
+- ingressroute.yaml
+#- middleware.yaml
+patches:
+- path: argocd-cmd-params-cm-patch.yaml
+- path: argocd-server-service-patch.yaml

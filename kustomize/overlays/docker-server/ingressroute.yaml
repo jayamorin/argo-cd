@@ -1,0 +1,56 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: argocd.artsbychip.com
+  namespace: argocd
+spec:
+  secretName: argocd.artsbychip.com
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  dnsNames:
+  - argocd.artsbychip.com
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  namespace: argocd
+  name: argocd-server-http
+spec:
+  entryPoints:
+  - web
+  routes:
+  - kind: Rule
+    match: Host(`argocd.artsbychip.com`)
+    priority: 10
+    services:
+    - name: argocd-server
+      port: 80
+    middlewares:
+    - name: traefik-http-to-https@kubernetescrd
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: argocd-server-https
+  namespace: argocd
+spec:
+  entryPoints:
+  - websecure
+  routes:
+  - kind: Rule
+    match: Host(`argocd.artsbychip.com`)
+    priority: 10
+    services:
+    - name: argocd-server
+      port: 80
+  - kind: Rule
+    match: (Host(`argocd.artsbychip.com`) && PathPrefix(`/argocd`)) && Headers(`Content-Type`, `application/grpc`) 
+    priority: 11
+    services:
+    - name: argocd-server
+      port: 80
+      scheme: h2c
+  tls:
+    secretName: argocd.artsbychip.com
