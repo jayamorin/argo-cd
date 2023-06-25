@@ -2,40 +2,33 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: argocd-server-selfsigned
+  name: argocd.artsbychip.com
   namespace: argocd
 spec:
-  secretName: argocd-server-selfsigned
+  secretName: argocd.artsbychip.com
   issuerRef:
-    name: local-clusterissuer
+    name: letsencrypt-production
     kind: ClusterIssuer
   dnsNames:
-    - argocd-server.localdomain.com
+  - argocd.artsbychip.com
 ---
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
-  name: argocd-server-http
   namespace: argocd
+  name: argocd-server-http
 spec:
   entryPoints:
-    - web
+  - web
   routes:
-    - kind: Rule
-      match: Host(`argocd-server.localdomain.com`)
-      priority: 10
-      services:
-        - name: argocd-server
-          port: 80
-    - kind: Rule
-      match: Host(`argocd-server.localdomain.com`) && Headers(`Content-Type`, `application/grpc`)
-      priority: 11
-      services:
-        - name: argocd-server
-          port: 80
-          scheme: h2c
-      middlewares:
-        - name: traefik-http-to-https@kubernetescrd
+  - kind: Rule
+    match: Host(`argocd.artsbychip.com`)
+    priority: 10
+    services:
+    - name: argocd-server
+      port: 80
+    middlewares:
+    - name: traefik-http-to-https@kubernetescrd
 ---
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
@@ -44,20 +37,20 @@ metadata:
   namespace: argocd
 spec:
   entryPoints:
-    - websecure
+  - websecure
   routes:
-    - kind: Rule
-      match: Host(`argocd-server.localdomain.com`)
-      priority: 10
-      services:
-        - name: argocd-server
-          port: 80
-    - kind: Rule
-      match: Host(`argocd-server.localdomain.com`) && Headers(`Content-Type`, `application/grpc`)
-      priority: 11
-      services:
-        - name: argocd-server
-          port: 80
-          scheme: h2c
+  - kind: Rule
+    match: Host(`argocd.artsbychip.com`)
+    priority: 10
+    services:
+    - name: argocd-server
+      port: 80
+  - kind: Rule
+    match: (Host(`argocd.artsbychip.com`) && PathPrefix(`/argocd`)) && Headers(`Content-Type`, `application/grpc`) 
+    priority: 11
+    services:
+    - name: argocd-server
+      port: 80
+      scheme: h2c
   tls:
-    secretName: argocd-server-selfsigned
+    secretName: argocd.artsbychip.com
